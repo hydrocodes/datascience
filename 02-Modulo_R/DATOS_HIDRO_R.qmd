@@ -1,0 +1,429 @@
+---
+title: "Procesamiento de datos Hidrometeorológicos con R"
+author: "Fiorela Castillón, Lorena Dueñas"
+editor: source
+format:  
+    html:
+        embed-resources: true
+        theme: materia
+        toc: true
+        toc-depth: 3
+        toc-location: left
+        toc-title: ÍNDICE
+        number-sections: true
+        fontcolor: rgb(31, 69, 110)
+        highlight-style: atom-one
+        code-fold: true
+        code-summary: "Show the code"
+---
+
+# Estructura de datos en R
+
+R es un lenguaje orientado a objetos, por lo que una perspectiva global de ellos sería la siguiente:
+
+![Adaptado de Taylor (2015)](imag/estructura_datos.jpg "Esquema de Tipos de Objetos")
+
+## Tipos de Datos - Vectores
+
+* Crear el vector v, con valores enteros consecutivos del -6 al 12.
+
+```{r}
+
+```
+
+* Crear el vector w, con valores de -2.5 a 5 con incrementos de 2.5
+
+```{r}
+
+```
+
+* Concatenar en x los vectores v y w
+
+```{r}
+
+```
+
+* Repetir el vector w 3 veces
+
+```{r}
+
+```
+
+* Repetir los elementos del vector w 3 veces
+
+```{r}
+
+```
+
+* Crear el vector l con las letras del abecedario
+
+```{r}
+
+```
+
+* Seleccionar la 4ta posición del vector v
+
+```{r}
+
+```
+
+* Seleccionar todo menos la 4ta letra del vector l
+
+```{r}
+
+```
+
+* Seleccionar los elementos del vector v de la posición 2 a la posición 4
+
+```{r}
+
+```
+
+* Seleccionar los elementos de las posiciones 1 y 5 del vector v
+
+```{r}
+
+```
+
+* Seleccionar los elementos del vector v menores a 0
+
+```{r}
+
+```
+
+* Seleccionar los elementos del vector x cuyos valores sean 1,2,5
+
+```{r}
+
+```
+
+* Ordene el vector x
+
+```{r}
+
+```
+
+* Invierta la secuencia de datos del vector v
+
+```{r}
+
+```
+
+# Tidyverse
+
+![](/imag/Tidyverse_universe.png){fig-alt="El universo Tidyverse"}
+
+**Tidyverse** es una colección de paquetes de R, empleados para la manipulación de datos, análisis exploratorio de datos y visualización. El objetivo en común es facilitar el análisis de datos para obtener resultados como productos.
+Más detalles sobre cada paquete: <https://www.tidyverse.org/packages/> o <https://tidyverse.tidyverse.org/>
+
+## Instalación
+
+Para instalar empleamos lo siguiente:
+```{r}
+# install.packages('tidyverse')
+```
+
+Una vez instalado, el siguiente paso es cargar el paquete:
+
+```{r}
+library(tidyverse)
+```
+
+Después de ejecutar el comando, en automático se cargan estos 8 paquetes fundamentales: *readr*,*dplyr*,*ggplot2*,*tibble*,*stringr*,*forcats*,*tidyr*,*purrr*
+
+Existen otros paquetes más especializados que vienen incluidos con el paquete tidyverse, pero que no son cargados automáticamente, por lo que deberán ser cargados individualmente con el comando `library()`.
+
+### El famoso operador *%>%* (Pipe)
+
+Es una función que viene con el paquete magrittr y dplyr, que nos permite pasar el resultado de una función como argumento de otra en secuencia. 
+
+Este operador permite la legibilidad, la eficiencia y la simplicidad del código sobretodo cuando se trabajan con funciones anidadas.
+
+`Ctrl + shift + m` 	 Atajo para el operador pipe %>%
+`Alt + -` 		 Atajo para asignación “<-”
+
+Usualmente hacemos lo siguiente:
+
+~~~
+DF2 <- funcion1(DF)  
+DF3 <- funcion2(DF2)  
+DF4 <- funcion3(DF3)
+~~~
+
+o 
+
+~~~
+DF4 <- funcion3(funcion2(funcion1(DF)))
+~~~
+
+Mientras que con el operador pipe sería así:
+
+~~~
+DF4 <- DF %>% funcion1() %>% funcion2() %>% funcion3()
+~~~
+
+```{r}
+x <- c(0.109, 0.359, 0.63, 0.996, 0.515, 0.142, 0.017, 0.829, 0.907)
+
+round(exp(diff(log(x))), 1)
+
+x %>% log() %>%
+    diff() %>%
+    exp() %>%
+    round(1)
+```
+
+### Trabaja los datos como Dataframes o Tibbles
+
+* ***Dataframe:*** Estructura de datos básica que no requiere instalación de ningún paquete. Está formada por filas y columnas, asimismo tiene 2 atributos: las columnas y filas tienen nombres. Comprobar con `rownames()` y `colnames()`
+
+```{r}
+df <- data.frame(x=10:15,y=21:26,row.names = letters[1:6])
+df
+rownames(df)
+colnames(df)
+```
+```{r}
+as_tibble(df)
+rownames(as_tibble(df))
+```
+
+* ***Tibble:*** Esta estructura sí requiere un paquete llamado "tibble", el cual ya viene dentro del paquete "tidyverse". Estructuralmente un tibble también es un dataframe. Comprobar usando `class()`.
+
+```{r}
+class(iris)
+class(storms)
+```
+
+### Diferencias
+
+> La forma de mostrar los datos ('print') es diferente, en el sentido de que uno es más amigable e informativo que el otro.
+
+* *Si se emplea el comando data() obtenemos la lista de datasets tanto de R base como de las librerías cargadas* 
+
+Probar lo siguiente en la consola:
+
+~~~
+iris # Dataset de R base que se muestra como data.frame
+storms # Dataset de dplyr que se muestra como tibble
+~~~
+
+> No permite la selección con un nombre de columna incompleto
+
+```{r}
+iris$Sp
+```
+
+```{r}
+storms$na
+```
+> La selección, [] siempre devuelve un nuevo tibble, [[]] y $ devuelven un vector
+
+```{r}
+class(storms[,1:2])
+class(storms[,1])
+class(storms[[1]])
+class(storms$name)
+```
+
+> Un tibble no convierte por defecto los "strings" en "factores"
+
+Una reseña artística gracias a [Alisson Horst](https://twitter.com/allison_horst?lang=es)
+
+![](https://raw.githubusercontent.com/allisonhorst/stats-illustrations/master/rstats-artwork/tidydata_1.jpg)
+
+## paquete ***readr*** 
+
+### Leer archivos
+
+|                                       ¿Para qué?                                      |          Comando a emplear          |
+|:-------------------------------------------------------------------------------------:|:-----------------------------------:|
+|                   Para Leer archivos con algun delimitador emplear:                   |  read_delim(“file.txt”,delim=”\|”)  |
+| Para leer archivos delimitados por coma, con el punto como separador decimal emplear: |         read_csv(“file.csv”)        |
+|                     Para leer archivos separados por ";" emplear:                     |       read_csv2(“file2.csv”)       |
+|                Para leer archivos delimitados con tabulaciones emplear:               | read_tsv(“file.tsv”) o read_table() |
+|                      Para leer archivos con anchos fijos emplear                      |         read_fwf(“file.tsv”)        |
+
+### Otras opciones leyendo .csv
+
+|               ¿Para qué?              |               Comando a emplear               |
+|:-------------------------------------:|:---------------------------------------------:|
+|      Leer archivos sin encabezado     |      read_csv(“file.csv”,col_names=FALSE)     |
+|     Darle un encabezado al archivo    | read_csv(“file.csv”,col_names=c(“x”,”y”,”z”)) |
+|      Saltar líneas de un archivo      |         read_csv(“file.csv”,skip = 1)         |
+|     Definir los valores faltantes     |        read_csv(“file.csv”,na = c(“1”))       |
+| Seleccionando las columnas a importar |   read_csv(“file.csv”,col_select=c(“A”,”C”))  |
+
+Para exportar archivos .csv se puede emplear:
+
+> *write_csv()*
+
+### Ejercicios
+
+* Cargar la librería *"readxl"*
+
+```{r}
+library(readxl)
+```
+
+* Cargar los archivos "Miraflores.csv" y "Canal_BajoPiura.xlsx", asignar el archivo “.csv” a la variable "miraflores" y el archivo ".xlsx" a la variable "canal_bp".
+  - Pista: Emplear los comandos *"read_csv()" y "read_excel()"*
+  
+```{r}
+
+```
+
+
+
+## Paquete ***tidyr***
+
+### Comandos principales:
+
+* pivot_longer()
+* pivot_wider()
+* separate()
+* unite()
+
+* Emplear los comandos del paquete *tidyr* para obtener tablas en las que se cumpla la regla de: *"Cada columna es una variable, cada fila una observación y cada celda una sola medición".*
+
+## Paquete ***dplyr***
+
+*dplyr* es un paquete de manipulación de datos, cuyas 5 funciones principales son:
+
+* mutate() : Agrega nuevas variables que son funciones de variables existentes
+* select() : Elige variables basadas en sus nombres.
+* filter() : Elige los casos en función de sus valores.
+* summarise() : Reduce varios valores a un solo resumen.
+* arrange() : Cambia el orden de las filas.
+
+[Resumen comandos dplyr](https://github.com/rstudio/cheatsheets/blob/master/data-transformation.pdf
+)
+
+### Ejercicios
+
+Obtener la tabla de Temperaturas promedio de la estación *miraflores* :
+
+| Year | ENE | FEB | ... | DIC | PRIMAVERA | OTOÑO |
+|------|-----|-----|-----|-----|-----------|-------|
+| 2000 |     |     |     |     |           |       |
+| 2001 |     |     |     |     |           |       |
+| ...  |     |     |     |     |           |       |
+| 2008 |     |     |     |     |           |       |
+
+```{r}
+
+```
+
+```{r}
+meses <- c("Ene" , "Feb", "Mar" ,"Abr" ,"May" ,"Jun", "Jul" ,"Ago" ,"Set" ,"Oct" ,"Nov", "Dic")
+```
+
+
+```{r}
+
+```
+
+```{r}
+meses <- c("Ene","Feb", "Mar", "Abr", "May", "Jun",
+           "Jul", "Ago", "Set" ,"Oct" ,"Nov", "Dic")
+```
+
+**Ejercicio: Disgregar la columna Fecha (canal bajo piura)en "Dia", "Mes" y "Año"**
+
+```{r}
+
+```
+
+## El paquete ***ggplot2***
+
+## El paquete ggplot2
+
+Paquete que ya viene incluido en el superpaquete "Tidyverse", se encarga de la generación de gráficos estáticos. Para emplear sus funciones adecuadamente, hay que tener muy presente la siguiente estructura:
+
+![](http://blog.gramener.com/wp-content/uploads/2018/11/7-layers-of-grammar-of-graphics-to-tell-powerful-data-stories-3.png)
+
+- `Data:` El conjunto de datos limpios (tidy).
+- `Aesthetics:` La escala en al cual se ubicaran los datos.
+- `Geometries:` Gráfico que se quiere plotear. Ejm:lineas, puntos, boxplots, etc.
+- `Facets:` Filas y columnas de sub gráficos.
+- `statistics:` Modelos y resúmenes estadísticos.
+- `Coordinates:` Por defecto, ggplot aplicará las coordenadas cartesianas al gráfico, pero podemos modificar las escalas, así como el sistema de coordenadas.
+- `Theme:` Funciones y argumentos relacionados con aspectos gráficos.
+
+
+### *Data, Aesthetics y Geometries*
+
+```{r}
+# Data
+#canal_bp %>% ggplot(data=.)
+```
+
+```{r}
+# Aesthetics
+#canal_bp %>% ggplot(data=.,aes(x="Año",y="Caudal"))
+```
+
+```{r}
+# Geometries
+#canal_bp %>% ggplot(.,aes(x= Mes, y= Caudal)) +
+#  geom_boxplot(color="black",fill="pink")
+```
+
+###  Subplots
+
+Permite crear varios gráficos, se puede emplear facet_grid o facet_wrap dependiendo de nuestro interés.
+
+> Ejemplo **facet_wrap**
+
+```{r}
+# facet_wrap
+#canal_bp %>% ggplot(data=.,aes(x=`Mes`,y=`Caudal`)) +
+#  geom_boxplot(color="black",fill="pink") + facet_wrap(~Año,ncol=2)
+```
+
+> Ejemplo **facet_grid**
+
+```{r}
+# facet_grid
+#canal_bp %>% ggplot(data=.,aes(x=`Dia`,y=`Caudal`)) +
+#  geom_point(color="black") + facet_grid(Mes~Año,scales="free")
+```
+
+### Statistics
+
+Permite agregar algunas estadísticas al gráfico:
+
+```{r}
+#canal_bp %>% ggplot(data=.,aes(x=`Mes`,y=`Caudal`)) +
+#  geom_point(color="pink") + stat_summary(fun=mean, colour="black", geom="point") + #stat_summary(fun=mean, colour="black", geom="text",vjust = -0.4, aes(label=round(..y.., digits=1)))
+```
+
+### Coordinates
+
+Permite cambiar el tipo de coordenadas, pero tambien se trabaja con las escalas:
+
+Ej: Mostrar algunas etiquetas en el eje x
+
+```{r}
+#canal_bp %>% mutate_at(c(1:3),as.numeric) %>% ggplot(data=.,aes(x=`Dia`,y=`Caudal`)) +
+#  geom_point(color="black") +
+#  facet_grid(Mes~Año,scales="free") + 
+#  scale_x_continuous(breaks = seq(1, 31, by = 4))
+```
+
+### Themes
+
+ggplot2 viene con 8 [temas](http://es.r4ds.hadley.nz/images/visualization-themes.png). Si bien existen muchos otros temas, estos están incluidos en paquetes adicionales como ggthemes (https://github.com/jrnold/ggthemes), de Jeffrey Arnold.
+
+## EJERCICIO APLICADO:
+
+1. Cargar el archivo 'Mensual_3estaciones.csv'
+2. Generar el ciclo anual de precipitación de cada estación, así mismo obtener la precipitación anual, considerando el año hidrológico y añadir las categorías de "Invierno", "Verano", "Otoño", "Primavera".
+3. Grafique y compare los datos mensuales de cada estación.
+4. Automatizar la generación de un gráfico por estacion
+
+
+
+
+
+
